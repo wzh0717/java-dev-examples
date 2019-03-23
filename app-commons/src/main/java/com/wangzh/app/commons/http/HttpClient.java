@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @Description: 基于apache httpcomponents HTTP辅助类
+ * @Description: 基于apache HttpClient HTTP辅助类
  * @Auther:wangzh
  * @Date: 2019/03/23 21:22
  */
