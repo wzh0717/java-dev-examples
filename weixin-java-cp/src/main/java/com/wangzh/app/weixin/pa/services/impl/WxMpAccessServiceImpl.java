@@ -1,6 +1,6 @@
 package com.wangzh.app.weixin.pa.services.impl;
 
-import com.wangzh.app.commons.http.HttpClient;
+//import com.wangzh.app.commons.http.HttpClient;
 import com.wangzh.app.weixin.pa.services.WxMpAccessService;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +22,7 @@ public class WxMpAccessServiceImpl implements WxMpAccessService {
      */
     @Override
     public String getAccessToken(String url, Map<String, Object> params) throws Exception {
-        return HttpClient.httpGet(url, params);
+        // return HttpClient.httpGet(url, params);
+        return null;
     }
 }
