@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class WeixinJavaCpApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(WeixinJavaCpApplication.class, args);
-	}
+    public static void main(String[] args) {
+        System.out.println("[main application] start...");
+        SpringApplication.run(WeixinJavaCpApplication.class, args);
+    }
 
 }
