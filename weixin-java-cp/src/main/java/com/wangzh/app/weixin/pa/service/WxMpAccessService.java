@@ -1,4 +1,4 @@
-package com.wangzh.app.weixin.pa.services;
+package com.wangzh.app.weixin.pa.service;
 
 import java.util.Map;
 

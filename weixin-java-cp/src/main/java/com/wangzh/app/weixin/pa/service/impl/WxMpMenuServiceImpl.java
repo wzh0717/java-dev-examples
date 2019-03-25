@@ -1,6 +1,6 @@
-package com.wangzh.app.weixin.pa.services.impl;
+package com.wangzh.app.weixin.pa.service.impl;
 
-import com.wangzh.app.weixin.pa.services.WxMpMenuService;
+import com.wangzh.app.weixin.pa.service.WxMpMenuService;
 
 /**
  * @Description: 微信菜单
