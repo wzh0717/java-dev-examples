@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+//import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -19,11 +19,11 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * @Description: druid 数据源
+ * @Description: druid 单数据源
  * @CreatedDate:2019-03-25 14:30
  * @Author:wangzh
  */
-@Configuration
+//@Configuration
 public class DruidDataSourceConfig {
 
     @Bean(name = "druidDataSource")

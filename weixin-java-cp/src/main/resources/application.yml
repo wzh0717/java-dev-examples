@@ -9,7 +9,7 @@ spring:
   application:
     name: weixin-java-cp
   profiles:
-    active: dev
+    active: test
   resources:
     static-locations: classpath:/static/,classpath:/templates/
   servlet:

@@ -6,22 +6,22 @@ package com.wangzh.app.weixin.pa.constant;
  * @Author:wangzh
  */
 public enum DataSourceType {
-    Mysql("mysql"),
-    Oracle("oracle"),
-    SqlServer("SqlServer");
+    /**
+     * 读
+     */
+    DATASOURCE_READ_KEY("database.master.read"),
+    /**
+     * 写
+     */
+    DATASOURCE_WRITE_KEY("database.master.write");
 
-    DataSourceType(String name) {
-        this.name = name;
+    DataSourceType(String key) {
+        this.key = key;
     }
 
-    private String name;
+    private String key;
 
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public String getKey() {
+        return key;
     }
 }

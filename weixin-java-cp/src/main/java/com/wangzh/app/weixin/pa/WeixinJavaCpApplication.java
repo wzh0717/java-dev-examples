@@ -6,10 +6,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.ComponentScan;
 
 import java.security.Security;
 
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+@ComponentScan("com.wangzh.app.*.**.**")
 public class WeixinJavaCpApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         //BC模式
@@ -28,7 +30,6 @@ public class WeixinJavaCpApplication extends SpringBootServletInitializer {
      */
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        System.out.println("[weixin application] build...");
         return builder.sources(WeixinJavaCpApplication.class);
     }
 
