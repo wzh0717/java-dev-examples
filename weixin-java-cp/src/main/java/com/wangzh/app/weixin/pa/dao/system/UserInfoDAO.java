@@ -1,7 +1,9 @@
-package com.wangzh.app.weixin.pa.dao;
+package com.wangzh.app.weixin.pa.dao.system;
 
 import com.wangzh.app.weixin.pa.model.entity.UserInfoEntity;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.Map;
 
 /**
  * @Description:
@@ -17,4 +19,12 @@ public interface UserInfoDAO {
      * @return
      */
     int addUser(UserInfoEntity entity);
+
+    /**
+     * 获取用户信息
+     *
+     * @param params 参数
+     * @return
+     */
+    UserInfoEntity getUserInfo(Map<String, Object> params);
 }

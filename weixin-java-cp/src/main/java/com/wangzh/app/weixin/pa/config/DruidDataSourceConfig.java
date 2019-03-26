@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 /**
- * @Description:
+ * @Description: druid datasource
  * @CreatedDate:2019-03-25 14:30
  * @Author:wangzh
  */

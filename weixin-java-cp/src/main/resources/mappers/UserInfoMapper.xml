@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.wangzh.app.weixin.pa.dao.UserInfoDAO">
-
+<mapper namespace="com.wangzh.app.weixin.pa.dao.system.UserInfoDAO">
+    <resultMap id="basicMap" type="com.wangzh.app.weixin.pa.model.entity.UserInfoEntity">
+        <id column="user_id" property="userID" jdbcType="INTEGER"/>
+        <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+        <result column="password" property="userPwd" jdbcType="VARCHAR"/>
+    </resultMap>
     <insert id="addUser" parameterType="com.wangzh.app.weixin.pa.model.entity.UserInfoEntity"></insert>
+    <!--获取用户信息-->
+    <select id="getUserInfo" parameterType="java.util.Map" resultMap="basicMap">
+        SELECT * FROM td_sys_user WHERE user_id=#{userID}
+    </select>
 </mapper>
