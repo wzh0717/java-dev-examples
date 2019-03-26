@@ -3,27 +3,74 @@ package com.wangzh.app.weixin.pa.config;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.support.http.WebStatFilter;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.sql.DataSource;
 
 /**
- * @Description: druid datasource
+ * @Description: druid 数据源
  * @CreatedDate:2019-03-25 14:30
  * @Author:wangzh
  */
 @Configuration
 public class DruidDataSourceConfig {
 
-    @Bean
+    @Bean(name = "druidDataSource")
     @ConfigurationProperties(prefix = "spring.datasource")
     public DataSource druidDataSource() {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        return druidDataSource;
+        return new DruidDataSource();
+    }
+
+    /**
+     * SqlSessionFactory
+     *
+     * @param dataSource
+     * @return
+     * @throws Exception
+     */
+    @Bean(name = "sqlSessionFactory")
+    public SqlSessionFactory sqlSessionFactory(@Qualifier(value = "druidDataSource") DataSource dataSource) throws Exception {
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(dataSource);
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        sqlSessionFactoryBean.setMapperLocations(resolver.getResources("classpath*:/mappers/**/*.xml"));
+        sqlSessionFactoryBean.setConfigLocation((new DefaultResourceLoader()).getResource("classpath:mybatis-config.xml"));
+        return sqlSessionFactoryBean.getObject();
+    }
+
+    /**
+     * DataSourceTransactionManager
+     *
+     * @param dataSource
+     * @return
+     */
+    @Bean(name = "dataSourceTransactionManager")
+    public DataSourceTransactionManager dataSourceTransactionManager(@Qualifier(value = "druidDataSource") DataSource dataSource) {
+        DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+        dataSourceTransactionManager.setDataSource(dataSource);
+        return dataSourceTransactionManager;
+    }
+
+    /**
+     * SqlSessionTemplate
+     *
+     * @param sqlSessionFactory
+     * @return
+     */
+    @Bean(name = "sqlSessionTemplate")
+    public SqlSessionTemplate sqlSessionTemplate(@Qualifier(value = "sqlSessionFactory") SqlSessionFactory sqlSessionFactory) {
+        return new SqlSessionTemplate(sqlSessionFactory);
     }
 
     /**
@@ -31,7 +78,7 @@ public class DruidDataSourceConfig {
      *
      * @return
      */
-    @Bean
+    @Bean(name = "druidServlet")
     public ServletRegistrationBean druidServlet() {
         ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new StatViewServlet(), "/druid/*");
         //白名单：
@@ -51,7 +98,7 @@ public class DruidDataSourceConfig {
      *
      * @return
      */
-    @Bean
+    @Bean(name = "filterRegistrationBean")
     public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
         filterRegistrationBean.setFilter(new WebStatFilter());

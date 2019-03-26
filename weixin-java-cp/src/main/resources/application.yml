@@ -1,7 +1,10 @@
 server:
   port: 8010
+  tomcat:
+    uri-encoding: UTF-8
   servlet:
     context-path: /weixin
+#spring
 spring:
   application:
     name: weixin-java-cp
@@ -13,8 +16,15 @@ spring:
     multipart:
       max-request-size: 200MB
       max-file-size: 100MB
-
+#mybatis
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
   mapper-locations: "classpath*:mappers/**/*.xml"
+#logging
+logging:
+  config: classpath:logback-spring.xml
+
+
+
+
