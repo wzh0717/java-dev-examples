@@ -93,8 +93,6 @@ public class DataSourceConfig {
     }
 
     /***************************druid************************/
-    @Value("${datasource.druid.type}")
-    private String dbType;
     @Value("${datasource.druid.initialSize}")
     private int initialSize;
 
@@ -140,7 +138,6 @@ public class DataSourceConfig {
      * @param datasource
      */
     private void setDruidOptions(DruidDataSource datasource) {
-        datasource.setDbType(dbType);
         datasource.setInitialSize(initialSize);
         datasource.setMinIdle(minIdle);
         datasource.setMaxActive(maxActive);

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import java.security.Security;
 
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
-@ComponentScan("com.wangzh.app.*.**.**")
+@ComponentScan("com.wangzh.app.weixin.*.**.**")
 public class WeixinJavaCpApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         //BC模式

@@ -1,5 +1,7 @@
 package com.wangzh.app.weixin.pa.service.system.impl;
 
+import com.wangzh.app.weixin.pa.config.datasource.TargetDataSource;
+import com.wangzh.app.weixin.pa.constant.DataSourceType;
 import com.wangzh.app.weixin.pa.dao.system.UserInfoDAO;
 import com.wangzh.app.weixin.pa.model.entity.UserInfoEntity;
 import com.wangzh.app.weixin.pa.service.impl.AbstractService;
@@ -28,6 +30,7 @@ public class UserInfoServiceImpl extends AbstractService implements UserInfoServ
      * @return
      */
     @Override
+    @TargetDataSource(DataSourceType.DATASOURCE_READ_KEY)
     public UserInfoEntity getUserInfoByID(Integer userID) {
         Map<String, Object> params = new HashMap<>();
         params.put("userID", userID);
