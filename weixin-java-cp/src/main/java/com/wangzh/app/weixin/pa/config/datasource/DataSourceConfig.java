@@ -183,12 +183,10 @@ public class DataSourceConfig {
 
     @Bean(name = "druidServlet")
     public ServletRegistrationBean druidServlet() {
-        ServletRegistrationBean reg = new ServletRegistrationBean();
-        reg.setServlet(new StatViewServlet());
-        reg.addUrlMappings("/druid/*");
+        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new StatViewServlet(), "/druid/*");
         //白名单
-        reg.addInitParameter("allow", "");
-        return reg;
+        servletRegistrationBean.addInitParameter("allow", "");
+        return servletRegistrationBean;
     }
 
     @Bean(name = "filterRegistrationBean")
