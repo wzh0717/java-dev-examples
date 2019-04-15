@@ -24,8 +24,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
  * @Description: 基于 springframework redisTemplate
- * springboot 1.5.x jedis
- * springboot 2.0.x lettuce
+ * springboot 1.5.x default jedis
+ * springboot 2.0.x default lettuce
  * @CreatedDate:2019-03-27 16:11
  * @Author:wangzh
  */
