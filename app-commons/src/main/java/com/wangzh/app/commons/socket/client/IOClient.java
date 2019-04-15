@@ -11,7 +11,7 @@ import java.util.Date;
  */
 
 public class IOClient {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         new Thread(() -> {
             try {
                 Socket socket = new Socket("127.0.0.1", 8000);
@@ -21,7 +21,7 @@ public class IOClient {
                         socket.getOutputStream().flush();
                         //2秒
                         Thread.sleep(2000);
-                    } catch (Exception ex) {
+                    } catch (InterruptedException ex) {
                     }
                 }
             } catch (IOException e) {
