@@ -1,10 +1,14 @@
 package com.wangzh.shirojwt.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.wangzh.app.commons.result.R;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.wangzh.shirojwt.model.LoginModel;
+import com.wangzh.shirojwt.model.entity.SysUserEntity;
+import com.wangzh.shirojwt.service.UserService;
+import com.wangzh.shirojwt.shiro.ShiroUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @Description:
@@ -15,6 +19,49 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/user")
 public class UserController extends AbstractController {
+
+    @Autowired
+    private UserService userService;
+
+    /**
+     * 注册
+     *
+     * @param model
+     * @return
+     */
+    @PostMapping(value = "/register")
+    public R register(@RequestBody LoginModel model) {
+        SysUserEntity userEntity = new SysUserEntity();
+        //MD5
+        userEntity.setSalt(ShiroUtils.getRandomSalt(2));
+        userEntity.setPassword(ShiroUtils.md5(model.getPassword(), model.getUserName().concat(userEntity.getSalt())));
+        return R.ok("success");
+    }
+
+    /**
+     * 用户登录
+     *
+     * @param model
+     * @return
+     */
+    @PostMapping(value = "/login")
+    public R login(@RequestBody LoginModel model) {
+        logger.info("[login] 参数：{}", JSONObject.toJSONString(model));
+        if (null == model) return R.error(-1, "参数为空");
+        String userName = model.getUserName();
+        String password = model.getPassword();
+        if (StringUtils.isBlank(userName) || StringUtils.isBlank(password))
+            return R.error(-2, "用户名或密码为空");
+
+        SysUserEntity userEntity = userService.getUserByName(userName);
+        if (null == userEntity) return R.error(-3, "用户不存在");
+        //同一掩码
+        String salt = userEntity.getSalt();
+        String encodedPassword = ShiroUtils.md5(password, userName.concat(salt));
+        if (!encodedPassword.equalsIgnoreCase(userEntity.getPassword()))
+            return R.error(-4, "登录密码错误");
+        return R.ok("success");
+    }
 
     @GetMapping(value = "/info")
     public R getUserInfo(@RequestParam(name = "userID") Integer userID) {

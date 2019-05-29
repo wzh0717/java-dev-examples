@@ -10,7 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 /**
- * @Description:
+ * @Description:AES对称加密
  * @CreatedDate:2019-03-25 16:21
  * @Author:wangzh
  */
