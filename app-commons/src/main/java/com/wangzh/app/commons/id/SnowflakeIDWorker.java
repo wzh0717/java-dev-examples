@@ -157,11 +157,11 @@ public class SnowflakeIDWorker {
      * @param args
      */
     public static void main(String[] args) {
-        SnowflakeIDWorker idWorker = new SnowflakeIDWorker(2, 3);
-        for (int i = 0; i < 1000; i++) {
+        SnowflakeIDWorker idWorker = new SnowflakeIDWorker(1, 1);
+        for (int i = 0; i < 5; i++) {
             long id = idWorker.getNextID();
             System.out.println(id);
-            System.out.println(Long.toBinaryString(id));
+            //System.out.println(Long.toBinaryString(id));
             // System.out.println("长度："+Long.valueOf(id).toString().length());
         }
     }

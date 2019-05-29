@@ -32,8 +32,6 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -54,7 +52,6 @@ import java.util.Map;
  */
 public class HttpClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpClient.class);
     public static final ContentType TEXT_PLAIN = ContentType.create("text/plain", StandardCharsets.UTF_8);
 
 
@@ -561,7 +558,6 @@ public class HttpClient {
                     .register("https", getSSLFactory()).build();
         } catch (Exception ex) {
             ex.printStackTrace();
-            logger.error("获取 HTTPClient注册器失败：{}", ex.getMessage());
         }
 
         return registry;

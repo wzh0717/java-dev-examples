@@ -17,6 +17,7 @@
     <modules>
         <module>app-commons</module>
         <module>weixin-java-cp</module>
+        <module>shiro-jwt</module>
     </modules>
 
     <properties>

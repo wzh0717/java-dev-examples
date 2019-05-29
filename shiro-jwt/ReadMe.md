@@ -1,0 +1,1 @@
+spring boot 2.1.3.RELEASE shiro+jwt
