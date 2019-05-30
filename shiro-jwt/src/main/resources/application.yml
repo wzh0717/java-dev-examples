@@ -19,6 +19,12 @@ spring:
       max-request-size: 200MB
       max-file-size: 100MB
 
+#mybatis
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+  mapper-locations: "classpath*:mappers/**/*.xml"
+
 #logging
 logging:
   config: classpath:logback-spring.xml

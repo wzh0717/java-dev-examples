@@ -25,6 +25,11 @@ public class SysUserEntity implements Serializable {
 
     private List<SysRoleEntity> roles;
 
+    /**
+     * 状态
+     */
+    private Integer userState;
+
     public Long getUserID() {
         return userID;
     }
@@ -64,6 +69,14 @@ public class SysUserEntity implements Serializable {
 
     public void setRoles(List<SysRoleEntity> roles) {
         this.roles = roles;
+    }
+
+    public Integer getUserState() {
+        return userState;
+    }
+
+    public void setUserState(Integer userState) {
+        this.userState = userState;
     }
 
     @Override

@@ -13,8 +13,6 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -25,15 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class MyShiroRealm extends AuthorizingRealm {
 
-    private static final Logger logger = LoggerFactory.getLogger(MyShiroRealm.class);
-
     @Autowired
     private UserService userService;
-
-    /**
-     * JWT签名密钥
-     */
-    public static final String SECRET = "9281e268b77b7c439a20b46fd1483b9a";
 
     @Override
     public boolean supports(AuthenticationToken token) {

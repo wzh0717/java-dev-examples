@@ -18,7 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * @Description:
+ * @Description: apache shiro
  * @Auther:wangzh
  * @Date: 2019/05/29 17:24
  */
@@ -33,7 +33,7 @@ public class ShiroConfig {
      * @param securityManager
      * @return
      */
-    @Bean
+    @Bean(name = "shiroFilter")
     public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
@@ -64,7 +64,7 @@ public class ShiroConfig {
      *
      * @return
      */
-    @Bean
+    @Bean(name = "securityManager")
     public SecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         //设置realm
@@ -86,7 +86,7 @@ public class ShiroConfig {
      *
      * @return
      */
-    @Bean
+    @Bean(name = "shiroRealm")
     public MyShiroRealm shiroRealm() {
         return new MyShiroRealm();
     }
@@ -97,14 +97,14 @@ public class ShiroConfig {
      * @param securityManager
      * @return
      */
-    @Bean
+    @Bean(name = "authorizationAttributeSourceAdvisor")
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
         AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
         authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
         return authorizationAttributeSourceAdvisor;
     }
 
-    @Bean
+    @Bean(name = "ehCacheManager")
     public EhCacheManager ehCacheManager() {
         EhCacheManager cacheManager = new EhCacheManager();
         cacheManager.setCacheManagerConfigFile("classpath:ehcache.xml");

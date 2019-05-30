@@ -172,9 +172,9 @@ public class ShiroUtils {
     }
 
     public static void main(String[] args) {
-        String password1=ShiroUtils.md5("123456","admin".concat(ShiroUtils.getRandomSalt(2)));
-        String password2= MD5Utils.encrypt("123456");
+        String salt=ShiroUtils.getRandomSalt(2);
+        System.out.println(salt);
+        String password1=ShiroUtils.md5("123456","admin".concat(salt));
         System.out.println(password1);
-        System.out.println(password2);
     }
 }

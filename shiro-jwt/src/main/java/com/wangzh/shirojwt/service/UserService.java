@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
  * @Date: 2019/05/29 17:18
  */
 
-@Service
 public interface UserService {
 
     /**
@@ -18,4 +17,11 @@ public interface UserService {
      * @return
      */
     SysUserEntity getUserByName(String userName);
+
+    /**
+     * getUserAllByName
+     * @param userName
+     * @return
+     */
+    SysUserEntity getUserAllByName(String userName);
 }
