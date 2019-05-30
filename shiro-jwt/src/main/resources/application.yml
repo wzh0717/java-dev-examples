@@ -1,0 +1,24 @@
+
+server:
+  port: 8009
+  servlet:
+    context-path: /shiro
+  tomcat:
+    uri-encoding: utf-8
+
+#spring
+spring:
+  application:
+    name: shiro-jwt
+  profiles:
+    active: dev
+  resources:
+    static-locations: classpath:/static/,classpath:/templates/
+  servlet:
+    multipart:
+      max-request-size: 200MB
+      max-file-size: 100MB
+
+#logging
+logging:
+  config: classpath:logback-spring.xml
