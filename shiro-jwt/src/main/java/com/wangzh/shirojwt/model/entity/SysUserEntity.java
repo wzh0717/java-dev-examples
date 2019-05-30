@@ -1,6 +1,7 @@
 package com.wangzh.shirojwt.model.entity;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @Description:
@@ -21,6 +22,8 @@ public class SysUserEntity implements Serializable {
      * 加密掩码
      */
     private String salt;
+
+    private List<SysRoleEntity> roles;
 
     public Long getUserID() {
         return userID;
@@ -54,6 +57,14 @@ public class SysUserEntity implements Serializable {
         this.salt = salt;
     }
 
+
+    public List<SysRoleEntity> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<SysRoleEntity> roles) {
+        this.roles = roles;
+    }
 
     @Override
     public String toString() {

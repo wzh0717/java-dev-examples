@@ -32,8 +32,9 @@ public class UserController extends AbstractController {
     @PostMapping(value = "/register")
     public R register(@RequestBody LoginModel model) {
         SysUserEntity userEntity = new SysUserEntity();
-        //MD5
+        //掩码
         userEntity.setSalt(ShiroUtils.getRandomSalt(2));
+        //MD5
         userEntity.setPassword(ShiroUtils.md5(model.getPassword(), model.getUserName().concat(userEntity.getSalt())));
         return R.ok("success");
     }
@@ -57,6 +58,7 @@ public class UserController extends AbstractController {
         if (null == userEntity) return R.error(-3, "用户不存在");
         //同一掩码
         String salt = userEntity.getSalt();
+        //MD5
         String encodedPassword = ShiroUtils.md5(password, userName.concat(salt));
         if (!encodedPassword.equalsIgnoreCase(userEntity.getPassword()))
             return R.error(-4, "登录密码错误");

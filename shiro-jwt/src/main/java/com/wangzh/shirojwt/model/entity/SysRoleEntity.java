@@ -1,6 +1,8 @@
 package com.wangzh.shirojwt.model.entity;
 
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @Description:
@@ -12,6 +14,8 @@ public class SysRoleEntity implements Serializable {
     private static final long serialVersionUID = 2290838943214753638L;
     private long roleID;
     private String roleName;
+
+    private List<SysPermissionEntity> permissions;
 
     public long getRoleID() {
         return roleID;
@@ -27,6 +31,15 @@ public class SysRoleEntity implements Serializable {
 
     public void setRoleName(String roleName) {
         this.roleName = roleName;
+    }
+
+
+    public List<SysPermissionEntity> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<SysPermissionEntity> permissions) {
+        this.permissions = permissions;
     }
 
     @Override
