@@ -33,7 +33,7 @@ public class JWTUtils {
         Algorithm algorithm = Algorithm.HMAC256(secret);
         // 附带username信息
         return JWT.create()
-                .withClaim("username", userName)
+                .withClaim("userName", userName)
                 .withExpiresAt(date)
                 .sign(algorithm);
     }
@@ -48,7 +48,7 @@ public class JWTUtils {
      */
     public static boolean verify(String token, String userName, String secret) {
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
-                .withClaim("username", userName)
+                .withClaim("userName", userName)
                 .build();
         DecodedJWT jwt = verifier.verify(token);
         return true;
@@ -62,6 +62,6 @@ public class JWTUtils {
      */
     public static String getUserName(String token) {
         DecodedJWT jwt = JWT.decode(token);
-        return jwt.getClaim("username").asString();
+        return jwt.getClaim("userName").asString();
     }
 }

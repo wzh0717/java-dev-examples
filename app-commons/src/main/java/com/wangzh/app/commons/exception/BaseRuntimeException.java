@@ -7,7 +7,7 @@ package com.wangzh.app.commons.exception;
  */
 public class BaseRuntimeException extends RuntimeException {
     private static final long serialVersionUID = -1102606719960134442L;
-    private String code;
+    private int code;
     private String msg;
 
     public BaseRuntimeException(String msg) {
@@ -20,24 +20,24 @@ public class BaseRuntimeException extends RuntimeException {
         this.msg = msg;
     }
 
-    public BaseRuntimeException(String code, String msg) {
+    public BaseRuntimeException(int code, String msg) {
         super(msg);
         this.msg = msg;
         this.code = code;
     }
 
-    public BaseRuntimeException(String code, String msg, Exception e) {
+    public BaseRuntimeException(int code, String msg, Exception e) {
         super(msg, e);
         this.msg = msg;
         this.code = code;
     }
 
 
-    public String getCode() {
+    public int getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(int code) {
         this.code = code;
     }
 

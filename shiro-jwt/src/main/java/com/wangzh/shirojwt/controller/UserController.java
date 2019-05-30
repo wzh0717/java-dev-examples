@@ -5,8 +5,10 @@ import com.wangzh.app.commons.result.R;
 import com.wangzh.shirojwt.model.LoginModel;
 import com.wangzh.shirojwt.model.entity.SysUserEntity;
 import com.wangzh.shirojwt.service.UserService;
+import com.wangzh.shirojwt.shiro.JWTUtils;
 import com.wangzh.shirojwt.shiro.ShiroUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,18 +58,26 @@ public class UserController extends AbstractController {
 
         SysUserEntity userEntity = userService.getUserByName(userName);
         if (null == userEntity) return R.error(-3, "用户不存在");
-        //同一掩码
+        //掩码
         String salt = userEntity.getSalt();
         //MD5
         String encodedPassword = ShiroUtils.md5(password, userName.concat(salt));
         if (!encodedPassword.equalsIgnoreCase(userEntity.getPassword()))
             return R.error(-4, "登录密码错误");
-        return R.ok("success");
+        String signStr = JWTUtils.signature(model.getUserName(), encodedPassword);
+        return R.ok("success").put("token", signStr);
     }
 
+    /**
+     * 用户信息
+     *
+     * @param userID
+     * @return
+     */
     @GetMapping(value = "/info")
+    @RequiresAuthentication
     public R getUserInfo(@RequestParam(name = "userID") Integer userID) {
         logger.info("[getUserInfo] 参数：userID ->{}", userID);
-        return R.ok("success");
+        return R.ok("success").put("data", "测试token");
     }
 }

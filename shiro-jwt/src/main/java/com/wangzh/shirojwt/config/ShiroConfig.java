@@ -37,7 +37,7 @@ public class ShiroConfig {
     public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
-        //filter
+        //过滤器jwt
         Map<String, Filter> filterMap = shiroFilterFactoryBean.getFilters();
         filterMap.put("jwt", new JWTFilter());
         shiroFilterFactoryBean.setFilters(filterMap);
@@ -71,8 +71,7 @@ public class ShiroConfig {
         securityManager.setRealm(shiroRealm());
         //设置缓存
         securityManager.setCacheManager(ehCacheManager());
-
-        //关闭shiro sessions
+        //关闭shiro session
         DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
         DefaultSessionStorageEvaluator defaultSessionStorageEvaluator = new DefaultSessionStorageEvaluator();
         defaultSessionStorageEvaluator.setSessionStorageEnabled(false);
@@ -104,6 +103,11 @@ public class ShiroConfig {
         return authorizationAttributeSourceAdvisor;
     }
 
+    /**
+     * shiro  缓存管理器
+     *
+     * @return
+     */
     @Bean(name = "ehCacheManager")
     public EhCacheManager ehCacheManager() {
         EhCacheManager cacheManager = new EhCacheManager();
