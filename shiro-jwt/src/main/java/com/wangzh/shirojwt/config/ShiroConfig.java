@@ -6,11 +6,14 @@ import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 
 import javax.servlet.Filter;
@@ -37,24 +40,24 @@ public class ShiroConfig {
     public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
-        //过滤器jwt
-        Map<String, Filter> filterMap = shiroFilterFactoryBean.getFilters();
-        filterMap.put("jwt", new JWTFilter());
-        shiroFilterFactoryBean.setFilters(filterMap);
-        //拦截
+
+        //拦截器
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
-
-        //swagger接口文档
-//        filterChainDefinitionMap.put("/v2/api-docs", "anon");
-//        filterChainDefinitionMap.put("/webjars/**", "anon");
-//        filterChainDefinitionMap.put("/swagger-resources/**", "anon");
-//        filterChainDefinitionMap.put("/swagger-ui.html", "anon");
-//        filterChainDefinitionMap.put("/doc.html", "anon");
-
-        filterChainDefinitionMap.put("/**", "jwt");
+        //配置不会被拦截的链接
+        filterChainDefinitionMap.put("/**.js", "anon");
+        filterChainDefinitionMap.put("/druid/**", "anon");
+        filterChainDefinitionMap.put("/swagger**/**", "anon");
         // 访问401和404页面不通过我们的Filter
         filterChainDefinitionMap.put("/401", "anon");
         filterChainDefinitionMap.put("/404", "anon");
+
+        //自定义过滤器jwt
+        Map<String, Filter> filterMap = shiroFilterFactoryBean.getFilters();
+        filterMap.put("jwt", new JWTFilter());
+        shiroFilterFactoryBean.setFilters(filterMap);
+        filterChainDefinitionMap.put("/**", "jwt");
+        //未授权界面
+        shiroFilterFactoryBean.setUnauthorizedUrl("/403");
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilterFactoryBean;
     }
@@ -77,6 +80,7 @@ public class ShiroConfig {
         defaultSessionStorageEvaluator.setSessionStorageEnabled(false);
         subjectDAO.setSessionStorageEvaluator(defaultSessionStorageEvaluator);
         securityManager.setSubjectDAO(subjectDAO);
+
         return securityManager;
     }
 
@@ -91,16 +95,36 @@ public class ShiroConfig {
     }
 
     /**
-     * 开启 shiro apo支持
+     * 开启 shiro注解支持
+     *
+     * @return
+     */
+    @Bean(name = "defaultAdvisorAutoProxyCreator")
+    @DependsOn("lifecycleBeanPostProcessor")
+    public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator() {
+        DefaultAdvisorAutoProxyCreator creator = new DefaultAdvisorAutoProxyCreator();
+        //cglib代理
+        creator.setProxyTargetClass(true);
+        return creator;
+    }
+
+    @Bean(name = "lifecycleBeanPostProcessor")
+    public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
+        return new LifecycleBeanPostProcessor();
+    }
+
+    /**
+     * 开启 shiro注解支持
      *
      * @param securityManager
      * @return
      */
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Bean(name = "authorizationAttributeSourceAdvisor")
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
-        AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
-        authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
-        return authorizationAttributeSourceAdvisor;
+        AuthorizationAttributeSourceAdvisor sourceAdvisor = new AuthorizationAttributeSourceAdvisor();
+        sourceAdvisor.setSecurityManager(securityManager);
+        return sourceAdvisor;
     }
 
     /**

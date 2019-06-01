@@ -32,7 +32,7 @@ public class MyShiroRealm extends AuthorizingRealm {
     }
 
     /**
-     * 身份验证
+     * 身份认证
      *
      * @param authenticationToken
      * @return
@@ -62,7 +62,7 @@ public class MyShiroRealm extends AuthorizingRealm {
     }
 
     /**
-     * 授权
+     * 授权,只有当需要检测用户权限的时候才会调用此方法
      *
      * @param principalCollection
      * @return

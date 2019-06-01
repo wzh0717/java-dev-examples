@@ -64,7 +64,7 @@ public class UserController extends AbstractController {
         String encodedPassword = ShiroUtils.md5(password, userName.concat(salt));
         if (!encodedPassword.equalsIgnoreCase(userEntity.getPassword()))
             return R.error(-4, "登录密码错误");
-        String signStr = JWTUtils.signature(model.getUserName(), encodedPassword);
+        String signStr = JWTUtils.sign(model.getUserName(), encodedPassword);
         return R.ok("success").put("token", signStr);
     }
 

@@ -28,10 +28,10 @@ public class JWTUtils {
      * @param secret   密码
      * @return
      */
-    public static String signature(String userName, String secret) {
+    public static String sign(String userName, String secret) {
         Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
         Algorithm algorithm = Algorithm.HMAC256(secret);
-        // 附带username信息
+        // 附带userName信息
         return JWT.create()
                 .withClaim("userName", userName)
                 .withExpiresAt(date)
@@ -41,9 +41,9 @@ public class JWTUtils {
     /**
      * 验证token
      *
-     * @param token
-     * @param userName
-     * @param secret
+     * @param token 密钥
+     * @param userName 用户名
+     * @param secret 密码
      * @return
      */
     public static boolean verify(String token, String userName, String secret) {
