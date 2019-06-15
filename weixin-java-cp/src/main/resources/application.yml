@@ -3,7 +3,7 @@ server:
   tomcat:
     uri-encoding: UTF-8
   servlet:
-    context-path: /weixin
+    context-path: /
 #spring
 spring:
   application:
@@ -16,6 +16,8 @@ spring:
     multipart:
       max-request-size: 200MB
       max-file-size: 100MB
+  mvc:
+    static-path-pattern: /**
 #mybatis
 mybatis:
   configuration:

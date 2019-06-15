@@ -1,5 +1,7 @@
 package com.wangzh.app.weixin.pa.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.io.Serializable;
 
 /**
@@ -7,6 +9,7 @@ import java.io.Serializable;
  * @CreatedDate:2019-03-25 15:54
  * @Author:wangzh
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserInfoEntity implements Serializable {
     private static final long serialVersionUID = 6503681633017457051L;
     private Integer userID;
@@ -37,3 +40,4 @@ public class UserInfoEntity implements Serializable {
         this.userPwd = userPwd;
     }
 }
+

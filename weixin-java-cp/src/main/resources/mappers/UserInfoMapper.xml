@@ -9,6 +9,6 @@
     <insert id="addUser" parameterType="com.wangzh.app.weixin.pa.model.entity.UserInfoEntity"></insert>
     <!--获取用户信息-->
     <select id="getUserInfo" parameterType="java.util.Map" resultMap="basicMap">
-        SELECT * FROM td_sys_user WHERE user_id=#{userID}
+        SELECT * FROM sys_user WHERE user_id=#{userID}
     </select>
 </mapper>

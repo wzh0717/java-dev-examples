@@ -29,8 +29,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * @CreatedDate:2019-03-27 16:11
  * @Author:wangzh
  */
-@Configuration
-@EnableCaching
+//@Configuration
+//@EnableCaching
 public class RedisLettuceConfig extends CachingConfigurerSupport {
     private static final Logger logger = LoggerFactory.getLogger(RedisLettuceConfig.class);
 
