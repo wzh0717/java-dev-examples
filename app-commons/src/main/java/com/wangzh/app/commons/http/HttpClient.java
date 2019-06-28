@@ -5,17 +5,22 @@ import com.google.common.collect.Maps;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.*;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -25,25 +30,34 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Description: 基于apache HttpClient HTTP辅助类
@@ -53,25 +67,166 @@ import java.util.Map;
 public class HttpClient {
 
     public static final ContentType TEXT_PLAIN = ContentType.create("text/plain", StandardCharsets.UTF_8);
-
-
+    /**
+     * 最大连接数
+     */
+    private static final int MAX_TOTAL = 200;
+    private static final int Max_PRE_ROUTE = 50;
+    private static final int MAX_ROUTE = 50;
+    /**
+     * 请求超时时间
+     */
+    private static final int CONNECT_TIMEOUT = 3000;
+    /**
+     * 等待超时时间
+     */
+    private static final int SOCKET_TIMEOUT = 2000;
+    private static final long IDLE_TIMEOUT = 5000;
+    private static final long MONITOR_VAL = 3000;
     /**
      * Http 连接池
      */
-    private static PoolingHttpClientConnectionManager httpClientConnection = null;
+    private static PoolingHttpClientConnectionManager connectionManager;
+    /**
+     * HttpClient
+     */
+    private static CloseableHttpClient httpClient;
+    private static ScheduledExecutorService monitorExecutor;
+    private final static Object syncLock = new Object();
 
-    static {
+
+    /**
+     * 创建 HttpClient 实例
+     *
+     * @param path     证书全路径
+     * @param password 证书密码
+     * @return
+     */
+    public static CloseableHttpClient createHttpClient(String path, String password) throws Exception {
         // 初始化连接池，可用于请求HTTP/HTTPS（信任所有证书）
-        httpClientConnection = new PoolingHttpClientConnectionManager(getRegistry());
-        // 整个连接池最大连接数
-        httpClientConnection.setMaxTotal(200);
-        // 每路由最大连接数，默认值是2
-        httpClientConnection.setDefaultMaxPerRoute(5);
+        connectionManager = new PoolingHttpClientConnectionManager(getRegistry());
+        // 连接池最大连接数
+        connectionManager.setMaxTotal(MAX_TOTAL);
+        // 每个路由最大连接数，默认值是50
+        connectionManager.setDefaultMaxPerRoute(Max_PRE_ROUTE);
+        //Keep-Alive
+        ConnectionKeepAliveStrategy keepAliveStrategy = new ConnectionKeepAliveStrategy() {
+            @Override
+            public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+                HeaderElementIterator it = new BasicHeaderElementIterator
+                        (response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+                while (it.hasNext()) {
+                    HeaderElement he = it.nextElement();
+                    String param = he.getName();
+                    String value = he.getValue();
+                    if (value != null && param.equalsIgnoreCase
+                            ("timeout")) {
+                        return Long.parseLong(value) * 1000;
+                    }
+                }
+                return 60 * 1000;//如果没有约定，则默认定义时长为60s
+            }
+        };
+        //请求失败重试
+        HttpRequestRetryHandler retryHandler = new HttpRequestRetryHandler() {
+            /**
+             * 失败重试
+             * @param e
+             * @param executionCount 重试次数
+             * @param context
+             * @return
+             */
+            @Override
+            public boolean retryRequest(IOException e, int executionCount, HttpContext context) {
+                if (executionCount > 3) {
+                    System.out.println("retry has more than 3 time, give up request");
+                    return false;
+                }
+                if (e instanceof NoHttpResponseException) {
+                    //服务器没有响应,可能是服务器断开了连接,应该重试
+                    System.out.println("receive no response from server, retry");
+                    return true;
+                }
+                if (e instanceof SSLHandshakeException) {
+                    // SSL握手异常
+                    System.out.println("SSL hand shake exception");
+                    return false;
+                }
+                if (e instanceof InterruptedIOException) {
+                    //超时
+                    System.out.println("InterruptedIOException");
+                    return false;
+                }
+                if (e instanceof UnknownHostException) {
+                    // 服务器不可达
+                    System.out.println("server host unknown");
+                    return false;
+                }
+                if (e instanceof ConnectTimeoutException) {
+                    // 连接超时
+                    System.out.println("Connection Time out");
+                    return false;
+                }
+                if (e instanceof SSLException) {
+                    System.out.println("SSLException");
+                    return false;
+                }
+
+                HttpClientContext clientContext = HttpClientContext.adapt(context);
+                HttpRequest request = clientContext.getRequest();
+                if (!(request instanceof HttpEntityEnclosingRequest)) {
+                    //如果请求不是关闭连接的请求
+                    return true;
+                }
+                return false;
+            }
+        };
+        HttpClientBuilder clientBuilder = HttpClients.custom().setConnectionManager(connectionManager)
+                .setKeepAliveStrategy(keepAliveStrategy)
+                .setDefaultRequestConfig(setRequestConfig())
+                .setRetryHandler(retryHandler);
+
+        //https
+        if (StringUtils.isNotBlank(path) && StringUtils.isNotBlank(password))
+            //获取HTTPS SSL证书
+            return clientBuilder.setSSLSocketFactory(getSSLFactory(path, password)).build();
+        return clientBuilder.build();
     }
 
     /**
+     * 获取 HttpClient 单例
+     *
+     * @param path     证书全路径
+     * @param password 证书密码
+     * @return
+     */
+    public static CloseableHttpClient getHttpClient(String path, String password) throws Exception {
+        if (null == httpClient) {
+            synchronized (syncLock) {
+                if (null == httpClient) {
+                    httpClient = createHttpClient(path, password);
+                    //开启监控线程,对异常和空闲线程进行关闭
+                    monitorExecutor = Executors.newScheduledThreadPool(1);
+                    monitorExecutor.scheduleAtFixedRate(new TimerTask() {
+                        @Override
+                        public void run() {
+                            //关闭异常连接
+                            connectionManager.closeExpiredConnections();
+                            //关闭5s空闲的连接
+                            connectionManager.closeIdleConnections(IDLE_TIMEOUT, TimeUnit.MILLISECONDS);
+                            System.out.println("close expired and idle for over 5s connection");
+                        }
+                    }, MONITOR_VAL, MONITOR_VAL, TimeUnit.MILLISECONDS);
+                }
+            }
+        }
+        return httpClient;
+    }
+
+
+    /**
      * 发送 HTTP GET请求
-     * <p>不带请求参数和请求头</p>
+     * 不带请求参数和请求头
      *
      * @param url 地址
      * @return
@@ -79,6 +234,7 @@ public class HttpClient {
      */
     public static String httpGet(String url) throws Exception {
         HttpGet httpGet = new HttpGet(url);
+
         return doHttp(httpGet);
     }
 
@@ -89,7 +245,6 @@ public class HttpClient {
      * @param url    地址
      * @param params 参数
      * @return
-     * @throws Exception
      * @throws Exception
      */
     public static String httpGet(String url, Map<String, Object> params) throws Exception {
@@ -115,7 +270,6 @@ public class HttpClient {
      * @param params  参数
      * @return
      * @throws Exception
-     * @throws Exception
      */
     public static String httpGet(String url, Map<String, Object> headers, Map<String, Object> params) throws Exception {
         // 转换请求参数
@@ -133,6 +287,7 @@ public class HttpClient {
 
         return doHttp(httpGet);
     }
+
 
     /**
      * 发送 HTTP POST请求
@@ -443,6 +598,19 @@ public class HttpClient {
     }
 
     /**
+     * 关闭连接池
+     */
+    public static void closeConnectionPool() {
+        try {
+            httpClient.close();
+            connectionManager.close();
+            monitorExecutor.shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 发送 HTTP 请求
      *
      * @param request
@@ -451,7 +619,7 @@ public class HttpClient {
      */
     private static String doHttp(HttpRequestBase request) throws Exception {
         // 通过连接池获取连接对象
-        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(httpClientConnection).build();
+        CloseableHttpClient httpClient = getHttpClient(null, null);
 
         return doRequest(httpClient, request);
     }
@@ -468,45 +636,10 @@ public class HttpClient {
      * @throws Exception
      */
     private static String doHttps(HttpRequestBase request, String path, String password) throws Exception {
-        // 获取HTTPS SSL证书
-        SSLConnectionSocketFactory csf = getSSLFactory(path, password);
         // 通过连接池获取连接对象
-        CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+        CloseableHttpClient httpClient = getHttpClient(path, password);
 
         return doRequest(httpClient, request);
-    }
-
-    /**
-     * 获取HTTPS SSL连接工厂
-     * 使用指定的证书文件及密码
-     *
-     * @param path     证书全路径
-     * @param password 证书密码
-     * @return
-     * @throws Exception
-     * @throws Exception
-     */
-    private static SSLConnectionSocketFactory getSSLFactory(String path, String password) throws Exception {
-
-        // 初始化证书，指定证书类型为“PKCS12”
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        // 读取指定路径的证书
-        FileInputStream input = new FileInputStream(new File(path));
-
-        try {
-            // 装载读取到的证书，并指定证书密码
-            keyStore.load(input, password.toCharArray());
-        } finally {
-            input.close();
-        }
-
-        // 获取HTTPS SSL证书连接上下文
-        SSLContext sslContext = SSLContexts.custom().loadKeyMaterial(keyStore, password.toCharArray()).build();
-
-        // 获取HTTPS连接工厂，指定TSL版本
-        SSLConnectionSocketFactory sslCsf = new SSLConnectionSocketFactory(sslContext, new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.2"}, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-
-        return sslCsf;
     }
 
 
@@ -565,6 +698,39 @@ public class HttpClient {
 
     /**
      * 获取HTTPS SSL连接工厂
+     * 使用指定的证书文件及密码
+     *
+     * @param path     证书全路径
+     * @param password 证书密码
+     * @return
+     * @throws Exception
+     * @throws Exception
+     */
+    private static SSLConnectionSocketFactory getSSLFactory(String path, String password) throws Exception {
+
+        // 初始化证书，指定证书类型为“PKCS12”
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        // 读取指定路径的证书
+        FileInputStream input = new FileInputStream(new File(path));
+
+        try {
+            // 装载读取到的证书，并指定证书密码
+            keyStore.load(input, password.toCharArray());
+        } finally {
+            input.close();
+        }
+
+        // 获取HTTPS SSL证书连接上下文
+        SSLContext sslContext = SSLContexts.custom().loadKeyMaterial(keyStore, password.toCharArray()).build();
+
+        // 获取HTTPS连接工厂，指定TSL版本
+        SSLConnectionSocketFactory sslCsf = new SSLConnectionSocketFactory(sslContext, new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.2"}, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+
+        return sslCsf;
+    }
+
+    /**
+     * 获取HTTPS SSL连接工厂
      * 跳过证书校验，即信任所有证书
      *
      * @return
@@ -585,6 +751,20 @@ public class HttpClient {
         SSLConnectionSocketFactory sslCsf = new SSLConnectionSocketFactory(sslContext, new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.2"}, null, NoopHostnameVerifier.INSTANCE);
 
         return sslCsf;
+    }
+
+
+    /**
+     * Http 请求设置
+     *
+     */
+    private static RequestConfig setRequestConfig() {
+        RequestConfig config = RequestConfig.custom()
+                .setConnectionRequestTimeout(CONNECT_TIMEOUT)
+                .setConnectTimeout(CONNECT_TIMEOUT)
+                .setSocketTimeout(SOCKET_TIMEOUT)
+                .build();
+        return config;
     }
 
 }
