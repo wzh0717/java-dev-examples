@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class CommonExceptionHandler {
 
     /**
-     * 500 错误s
+     * 500 错误
      *
      * @param ex
      * @return

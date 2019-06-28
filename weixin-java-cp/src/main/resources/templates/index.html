@@ -7,10 +7,21 @@
 </head>
 <body>
 <h1>测试页面</h1>
+<input type="button" id="btExcel" value="下载"/>
 <script>
-    $(function () {
-       alert("init...");
+    $("#btExcel").click(function () {
+        // $("#storageDeptID").val(storageDeptID);//库存科室
+        //  $("#summaryID").val(inventory_Bill.summaryID);//货架货位
+        //   $("#gridData").val(mini.encode(gridData));//明细数据
+        var excelForm = document.getElementById("excelForm");
+        excelForm.action = "/user/excel";
+        excelForm.submit();
     });
 </script>
+<form id="excelForm" method="post" target="excelIFrame">
+    <input type="hidden" id="storageDeptID" name="storageDeptID"/>
+    <input type="hidden" id="summaryID" name="summaryID"/>
+    <input type="hidden" id="gridData" name="gridData"/>
+</form>
 </body>
 </html>

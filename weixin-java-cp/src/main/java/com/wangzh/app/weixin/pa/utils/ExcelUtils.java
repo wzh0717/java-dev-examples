@@ -3,7 +3,11 @@ package com.wangzh.app.weixin.pa.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.RegionUtil;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -13,7 +17,7 @@ import java.util.Date;
  * @Date: 2019/06/06 09:50
  */
 
-public abstract class ExcelUtils {
+public abstract class ExcelUtils<T> {
     /**
      * create cell
      *
@@ -149,7 +153,7 @@ public abstract class ExcelUtils {
         HSSFFont font = book.createFont();
         font.setFontName("Consolas");// 字体
         font.setColor(IndexedColors.BLACK.index);// 字体颜色
-        font.setFontHeightInPoints((short) 12);// 字体大小
+        font.setFontHeightInPoints((short) 11);// 字体大小
         switch (type) {
             case 1:
                 style.setAlignment(HorizontalAlignment.CENTER);
@@ -191,5 +195,40 @@ public abstract class ExcelUtils {
                 break;
         }
         return style;
+    }
+
+    /**
+     * 设置合并单元格边框样式
+     *
+     * @param region
+     * @param sheet
+     */
+    public static void setBorderStyle(CellRangeAddress region, HSSFSheet sheet) {
+        RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);   //下边框
+        RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);     //左边框
+        RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);    //右边框
+        RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);      //上边框
+    }
+
+    /**
+     * 四舍五入并去除末尾0
+     *
+     * @param value
+     * @param fix
+     */
+    public static double setRoundScale(double value, int fix) {
+        if (value == 0D)
+            return value;
+        BigDecimal bigDecimal = new BigDecimal(Double.toString(value));
+        return bigDecimal.setScale(fix, RoundingMode.HALF_UP).stripTrailingZeros().doubleValue();
+    }
+
+    /**
+     * 四舍五入并保留2位小数
+     *
+     * @param value
+     */
+    public static double setRoundScale(double value) {
+        return setRoundScale(value, 2);
     }
 }
